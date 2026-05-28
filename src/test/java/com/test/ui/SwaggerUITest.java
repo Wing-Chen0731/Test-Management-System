@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class SwaggerUITest {
     private static final double SLOW_MOTION_MS = 1200;
     private static final double FINAL_REVIEW_MS = 8000;
+    private static final String SWAGGER_UI_URL = "http://localhost:8080/swagger-ui/index.html";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -35,11 +36,14 @@ public class SwaggerUITest {
 
     @BeforeEach
     void setUp() {
+        Assumptions.assumeTrue(isSwaggerUiAvailable(), "Swagger UI is not available on localhost:8080");
+
         playwright = Playwright.create();
 
         LaunchOptions options = new LaunchOptions();
-        options.setHeadless(false);
-        options.setSlowMo(SLOW_MOTION_MS);
+        boolean headless = isHeadlessMode();
+        options.setHeadless(headless);
+        options.setSlowMo(headless ? 0 : SLOW_MOTION_MS);
 
         browser = playwright.chromium().launch(options);
         context = browser.newContext();
@@ -50,8 +54,6 @@ public class SwaggerUITest {
     @Test
     @DisplayName("Run CRUD walkthrough from Swagger UI")
     void testCrudWalkthroughByUI() throws Exception {
-        Assumptions.assumeTrue(isSwaggerUiAvailable(), "Swagger UI is not available on localhost:8080");
-
         swaggerPage.openSwaggerUi();
 
         swaggerPage.executeList(null);
@@ -85,13 +87,23 @@ public class SwaggerUITest {
         assertEquals(200, deleteResponse.path("code").asInt());
 
         swaggerPage.takeScreenshot("swagger-ui-test");
-        swaggerPage.pause(FINAL_REVIEW_MS);
+        if (!isHeadlessMode()) {
+            swaggerPage.pause(FINAL_REVIEW_MS);
+        }
+    }
+
+    private boolean isHeadlessMode() {
+        String explicitValue = System.getProperty("playwright.headless");
+        if (explicitValue != null) {
+            return Boolean.parseBoolean(explicitValue);
+        }
+        return Boolean.parseBoolean(System.getenv().getOrDefault("CI", "false"));
     }
 
     private boolean isSwaggerUiAvailable() {
         try {
             HttpURLConnection connection = (HttpURLConnection) URI
-                    .create("http://localhost:8080/swagger-ui/index.html")
+                    .create(SWAGGER_UI_URL)
                     .toURL()
                     .openConnection();
             connection.setRequestMethod("GET");

@@ -26,6 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("YAML-driven Swagger UI scenarios")
 class SwaggerYamlDataDrivenIT {
 
+    private static final String SWAGGER_UI_URL = "http://localhost:8080/swagger-ui/index.html";
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Map<String, String> variables = new HashMap<>();
 
@@ -40,8 +42,9 @@ class SwaggerYamlDataDrivenIT {
 
         try (Playwright playwright = Playwright.create()) {
             LaunchOptions options = new LaunchOptions();
-            options.setHeadless(false);
-            options.setSlowMo(800);
+            boolean headless = isHeadlessMode();
+            options.setHeadless(headless);
+            options.setSlowMo(headless ? 0 : 800);
 
             Browser browser = playwright.chromium().launch(options);
             BrowserContext context = browser.newContext();
@@ -98,10 +101,18 @@ class SwaggerYamlDataDrivenIT {
         return Long.parseLong(String.valueOf(step.get("id")));
     }
 
+    private boolean isHeadlessMode() {
+        String explicitValue = System.getProperty("playwright.headless");
+        if (explicitValue != null) {
+            return Boolean.parseBoolean(explicitValue);
+        }
+        return Boolean.parseBoolean(System.getenv().getOrDefault("CI", "false"));
+    }
+
     private boolean isSwaggerUiAvailable() {
         try {
             HttpURLConnection connection = (HttpURLConnection) URI
-                    .create("http://localhost:8080/swagger-ui/index.html")
+                    .create(SWAGGER_UI_URL)
                     .toURL()
                     .openConnection();
             connection.setRequestMethod("GET");
