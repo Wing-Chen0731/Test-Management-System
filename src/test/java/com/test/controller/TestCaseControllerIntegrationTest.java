@@ -2,6 +2,7 @@ package com.test.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.test.entity.TestCase;
+import com.test.service.TestCaseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -20,7 +20,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @DisplayName("TestCaseController集成测试")
 class TestCaseControllerIntegrationTest {
 
@@ -30,10 +29,14 @@ class TestCaseControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private TestCaseService testCaseService;
+
     private TestCase testCase;
 
     @BeforeEach
     void setUp() {
+        testCaseService.deleteAllTestCases();
         testCase = new TestCase();
         testCase.setTitle("用户登录测试");
         testCase.setModule("用户管理");
