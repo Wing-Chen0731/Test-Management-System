@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
@@ -95,7 +96,11 @@ class TestCaseServiceTest {
         TestCase result = testCaseService.updateTestCase(1L, updatedCase);
 
         assertNotNull(result);
-        verify(testCaseMapper, times(1)).updateById(any(TestCase.class));
+        ArgumentCaptor<TestCase> captor = ArgumentCaptor.forClass(TestCase.class);
+        verify(testCaseMapper).updateById(captor.capture());
+        assertEquals("用户登录测试（已更新）", captor.getValue().getTitle());
+        assertEquals("用户管理", captor.getValue().getModule());
+        assertEquals("待执行", captor.getValue().getStatus());
     }
 
     @Test
@@ -169,7 +174,7 @@ class TestCaseServiceTest {
 
         TestCase result = testCaseService.createTestCase(testCase);
 
-        assertNotNull(result);
+        assertNull(result);
         verify(testCaseMapper, times(1)).insert(any(TestCase.class));
     }
 

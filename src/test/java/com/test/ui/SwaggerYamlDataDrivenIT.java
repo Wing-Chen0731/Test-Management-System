@@ -8,13 +8,13 @@ import com.microsoft.playwright.BrowserType.LaunchOptions;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.test.ui.page.SwaggerPage;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
 import org.yaml.snakeyaml.Yaml;
 
-import java.net.HttpURLConnection;
-import java.net.URI;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -24,18 +24,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("YAML-driven Swagger UI scenarios")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 class SwaggerYamlDataDrivenIT {
-
-    private static final String SWAGGER_UI_URL = "http://localhost:8080/swagger-ui/index.html";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Map<String, String> variables = new HashMap<>();
 
+    @LocalServerPort
+    private int port;
+
     @Test
     @DisplayName("Execute Swagger UI flow from YAML file")
     void shouldExecuteSwaggerFlowFromYaml() throws Exception {
-        Assumptions.assumeTrue(isSwaggerUiAvailable(), "Swagger UI is not available on localhost:8080");
-
         Yaml yaml = new Yaml();
         InputStream inputStream = getClass().getResourceAsStream("/testdata/swagger_scenarios.yaml");
         List<Map<String, Object>> scenarios = yaml.load(inputStream);
@@ -49,7 +50,7 @@ class SwaggerYamlDataDrivenIT {
             Browser browser = playwright.chromium().launch(options);
             BrowserContext context = browser.newContext();
             Page page = context.newPage();
-            SwaggerPage swaggerPage = new SwaggerPage(page);
+            SwaggerPage swaggerPage = new SwaggerPage(page, "http://127.0.0.1:" + port);
 
             for (Map<String, Object> scenario : scenarios) {
                 executeScenario(swaggerPage, scenario);
@@ -109,18 +110,4 @@ class SwaggerYamlDataDrivenIT {
         return Boolean.parseBoolean(System.getenv().getOrDefault("CI", "false"));
     }
 
-    private boolean isSwaggerUiAvailable() {
-        try {
-            HttpURLConnection connection = (HttpURLConnection) URI
-                    .create(SWAGGER_UI_URL)
-                    .toURL()
-                    .openConnection();
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(1000);
-            connection.setReadTimeout(1000);
-            return connection.getResponseCode() < 500;
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
 }

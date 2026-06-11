@@ -1,11 +1,9 @@
-Write-Host "Starting MySQL container with Docker Compose..."
-docker-compose -f docker-compose-test.yml up -d
+docker info *> $null
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Docker Desktop is not running."
+    exit 1
+}
 
-Write-Host "Waiting for MySQL to be ready..."
-Start-Sleep -Seconds 15
-
-Write-Host "Running integration tests..."
-mvn verify
-
-Write-Host "Stopping MySQL container..."
-docker-compose -f docker-compose-test.yml down
+Write-Host "Running MySQL and Redis Testcontainers integration test..."
+mvn -q test-compile "-Dit.test=MultiContainerDemoIT" failsafe:integration-test failsafe:verify
+exit $LASTEXITCODE

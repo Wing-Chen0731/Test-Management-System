@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS test_case (
     precondition TEXT,
     steps TEXT,
     expected_result TEXT,
-    status VARCHAR(20) DEFAULT '待执行',
+    status VARCHAR(20) DEFAULT 'DRAFT',
     creator VARCHAR(50),
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

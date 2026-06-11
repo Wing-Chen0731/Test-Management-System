@@ -21,8 +21,6 @@ log/
 
 # === 本地敏感配置 ===
 application-local.yml
-application-dev.yml
-application-test.yml
 docker-compose.override.yml
 
 # === 系统文件 ===
@@ -32,6 +30,8 @@ Thumbs.db
 # === 其他 ===
 allure-results/
 .allure/
+*-output.txt
+swagger-ui-test.png
 *.swp
 *.swo
 *~

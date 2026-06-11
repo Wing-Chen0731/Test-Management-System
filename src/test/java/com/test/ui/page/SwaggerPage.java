@@ -12,13 +12,15 @@ public class SwaggerPage {
     private static final String OPERATION_PREFIX = "#/test-case-controller/";
 
     private final Page page;
+    private final String swaggerUiUrl;
 
-    public SwaggerPage(Page page) {
+    public SwaggerPage(Page page, String baseUrl) {
         this.page = page;
+        this.swaggerUiUrl = baseUrl + "/swagger-ui/index.html";
     }
 
     public void openSwaggerUi() {
-        page.navigate("http://localhost:8080/swagger-ui/index.html");
+        page.navigate(swaggerUiUrl);
         page.waitForTimeout(STEP_PAUSE_MS);
     }
 

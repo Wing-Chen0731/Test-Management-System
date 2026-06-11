@@ -25,7 +25,7 @@ public class TestCaseController {
     }
 
     @PutMapping("/{id}")
-    public Result<TestCase> update(@PathVariable Long id, @RequestBody TestCase testCase) {
+    public Result<TestCase> update(@PathVariable Long id, @Valid @RequestBody TestCase testCase) {
         TestCase updated = testCaseService.updateTestCase(id, testCase);
         return updated != null ? Result.success(updated) : Result.error("更新失败");
     }
@@ -45,8 +45,8 @@ public class TestCaseController {
     @GetMapping
     public Result<List<TestCase>> list(@RequestParam(required = false) String keyword) {
         List<TestCase> testCases;
-        if (keyword != null && !keyword.isEmpty()) {
-            testCases = testCaseService.searchTestCases(keyword);
+        if (keyword != null && !keyword.isBlank()) {
+            testCases = testCaseService.searchTestCases(keyword.trim());
         } else {
             testCases = testCaseService.getAllTestCases();
         }

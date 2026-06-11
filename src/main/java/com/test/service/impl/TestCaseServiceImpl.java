@@ -27,8 +27,7 @@ public class TestCaseServiceImpl implements TestCaseService {
         }
         testCase.setCreateTime(now);
         testCase.setUpdateTime(now);
-        testCaseMapper.insert(testCase);
-        return testCase;
+        return testCaseMapper.insert(testCase) > 0 ? testCase : null;
     }
 
     @Override
@@ -37,9 +36,9 @@ public class TestCaseServiceImpl implements TestCaseService {
         if (existing == null) {
             return null;
         }
-        testCase.setId(id);
-        testCase.setUpdateTime(LocalDateTime.now());
-        testCaseMapper.updateById(testCase);
+        mergeForUpdate(existing, testCase);
+        existing.setUpdateTime(LocalDateTime.now());
+        testCaseMapper.updateById(existing);
         return testCaseMapper.selectById(id);
     }
 
@@ -70,5 +69,30 @@ public class TestCaseServiceImpl implements TestCaseService {
     @Override
     public void deleteAllTestCases() {
         testCaseMapper.deleteAll();
+    }
+
+    private void mergeForUpdate(TestCase existing, TestCase update) {
+        existing.setTitle(update.getTitle());
+        if (update.getModule() != null) {
+            existing.setModule(update.getModule());
+        }
+        if (update.getPriority() != null) {
+            existing.setPriority(update.getPriority());
+        }
+        if (update.getPrecondition() != null) {
+            existing.setPrecondition(update.getPrecondition());
+        }
+        if (update.getSteps() != null) {
+            existing.setSteps(update.getSteps());
+        }
+        if (update.getExpectedResult() != null) {
+            existing.setExpectedResult(update.getExpectedResult());
+        }
+        if (update.getStatus() != null) {
+            existing.setStatus(update.getStatus());
+        }
+        if (update.getCreator() != null) {
+            existing.setCreator(update.getCreator());
+        }
     }
 }

@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>测试管理系统</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">TM</div>
+        <div>
+          <strong>Test Management</strong>
+          <span>面试演示控制台</span>
+        </div>
+      </div>
+
+      <nav class="nav-list" aria-label="主导航">
+        <a class="nav-item active" href="#case-workbench">用例工作台</a>
+        <a class="nav-item" href="#smoke-panel">接口冒烟</a>
+        <a class="nav-item" href="#test-suite-panel">测试体系</a>
+        <a class="nav-item" href="#report-panel">工程能力</a>
+      </nav>
+
+      <div class="sidebar-note">
+        <span>演示路径</span>
+        <strong>新增 → 搜索 → 编辑 → 冒烟 → 报告</strong>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">测试资产管理</p>
+          <h1>用例管理与自动化演示台</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn ghost" id="refreshBtn" type="button">刷新</button>
+          <button class="btn secondary" id="seedBtn" type="button">初始化演示数据</button>
+          <button class="btn primary" id="openCreateBtn" type="button">新建用例</button>
+        </div>
+      </header>
+
+      <section class="status-strip" aria-live="polite">
+        <div class="status-dot" id="apiStatusDot"></div>
+        <span id="apiStatusText">正在连接后端...</span>
+      </section>
+
+      <section class="metric-grid" aria-label="统计概览">
+        <article class="metric-card">
+          <span>用例总数</span>
+          <strong id="totalCount">0</strong>
+          <small>当前后端返回数据</small>
+        </article>
+        <article class="metric-card">
+          <span>P0/P1 高优先级</span>
+          <strong id="highPriorityCount">0</strong>
+          <small>面试时重点说明风险优先级</small>
+        </article>
+        <article class="metric-card">
+          <span>模块覆盖</span>
+          <strong id="moduleCount">0</strong>
+          <small>按 module 字段聚合</small>
+        </article>
+        <article class="metric-card">
+          <span>自动化能力</span>
+          <strong>CI + JaCoCo</strong>
+          <small>已接入工作流和覆盖率门禁</small>
+        </article>
+      </section>
+
+      <section class="workspace-grid">
+        <section class="case-panel" id="case-workbench">
+          <div class="panel-header">
+            <div>
+              <h2>用例工作台</h2>
+              <p>支持新增、编辑、删除、搜索、筛选和分页。</p>
+            </div>
+            <div class="quick-filters">
+              <button class="chip active" data-status-filter="ALL" type="button">全部</button>
+              <button class="chip" data-status-filter="DRAFT" type="button">DRAFT</button>
+              <button class="chip" data-status-filter="READY" type="button">READY</button>
+              <button class="chip" data-status-filter="PASSED" type="button">PASSED</button>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <label class="search-box">
+              <span>搜索</span>
+              <input id="keywordInput" type="search" placeholder="标题或模块关键字">
+            </label>
+            <label>
+              <span>优先级</span>
+              <select id="priorityFilter">
+                <option value="ALL">全部</option>
+                <option value="P0">P0</option>
+                <option value="P1">P1</option>
+                <option value="P2">P2</option>
+                <option value="P3">P3</option>
+              </select>
+            </label>
+            <label>
+              <span>模块</span>
+              <select id="moduleFilter">
+                <option value="ALL">全部模块</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>标题</th>
+                  <th>模块</th>
+                  <th>优先级</th>
+                  <th>状态</th>
+                  <th>创建人</th>
+                  <th>更新时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="caseTableBody"></tbody>
+            </table>
+            <div class="empty-state hidden" id="emptyState">
+              <strong>暂无匹配用例</strong>
+              <span>可以新建一条，或点击初始化演示数据。</span>
+            </div>
+          </div>
+
+          <div class="pagination">
+            <span id="pageSummary">0-0 / 0</span>
+            <div>
+              <button class="btn ghost" id="prevPageBtn" type="button">上一页</button>
+              <button class="btn ghost" id="nextPageBtn" type="button">下一页</button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="detail-panel">
+          <section class="side-card" id="smoke-panel">
+            <div class="side-card-header">
+              <h2>接口冒烟</h2>
+              <button class="btn secondary" id="runSmokeBtn" type="button">运行</button>
+            </div>
+            <ol class="run-log" id="smokeLog">
+              <li>等待运行</li>
+            </ol>
+          </section>
+
+          <section class="side-card" id="test-suite-panel">
+            <h2>测试体系演示</h2>
+            <p>复制命令到 VS Code 终端执行，适合面试时分层演示。</p>
+            <div class="suite-list">
+              <article class="suite-item">
+                <div>
+                  <strong>单元测试</strong>
+                  <span>Service / Result 工具类</span>
+                </div>
+                <button class="btn ghost copy-command" type="button" data-command='mvn -q "-Dtest=TestCaseServiceTest,ResultTest" test'>复制</button>
+              </article>
+              <article class="suite-item">
+                <div>
+                  <strong>接口测试</strong>
+                  <span>MockMvc + JSON/CSV 数据驱动</span>
+                </div>
+                <button class="btn ghost copy-command" type="button" data-command='mvn -q "-Dtest=TestCaseControllerTest,TestCaseDataDrivenTest" test'>复制</button>
+              </article>
+              <article class="suite-item">
+                <div>
+                  <strong>UI 测试</strong>
+                  <span>自启动随机端口 + Swagger UI + Playwright</span>
+                </div>
+                <button class="btn ghost copy-command" type="button" data-command='mvn -q "-Dtest=SwaggerUITest" test'>复制</button>
+              </article>
+              <article class="suite-item">
+                <div>
+                  <strong>多容器集成测试</strong>
+                  <span>Testcontainers MySQL + Redis</span>
+                </div>
+                <button class="btn ghost copy-command" type="button" data-command='powershell -ExecutionPolicy Bypass -File .\run-tests.ps1'>复制</button>
+              </article>
+              <article class="suite-item">
+                <div>
+                  <strong>自动化质量门禁</strong>
+                  <span>全量测试 + JaCoCo 报告 + 80% 门禁</span>
+                </div>
+                <button class="btn ghost copy-command" type="button" data-command="mvn -q clean verify">复制</button>
+              </article>
+            </div>
+            <div class="command-preview" id="commandPreview">选择一个测试套件复制命令</div>
+          </section>
+
+          <section class="side-card" id="report-panel">
+            <h2>工程能力入口</h2>
+            <div class="link-list">
+              <a href="/swagger-ui/index.html" target="_blank" rel="noreferrer">Swagger API 文档</a>
+              <a href="/v3/api-docs" target="_blank" rel="noreferrer">OpenAPI JSON</a>
+              <a href="/reports/jacoco/index.html" target="_blank" rel="noreferrer">JaCoCo 覆盖率报告</a>
+              <a href="/reports/allure/index.html" target="_blank" rel="noreferrer">Allure 测试报告</a>
+              <a href="https://github.com/Wing-Chen0731/Test-Management-System/actions" target="_blank" rel="noreferrer">GitHub Actions</a>
+            </div>
+            <div class="report-note">
+              执行 <code>mvn -q clean verify</code> 生成覆盖率和测试结果，
+              再执行 <code>mvn -q allure:report</code> 生成 Allure 页面。
+            </div>
+            <div class="quality-box">
+              <span>当前可讲亮点</span>
+              <strong>数据驱动测试 / 自定义断言 / CI / JaCoCo / Testcontainers</strong>
+            </div>
+            <div class="git-box">
+              <div class="git-box-header">
+                <strong>Git 命令</strong>
+                <span>复制到 VS Code 终端执行</span>
+              </div>
+              <div class="git-actions">
+                <button class="btn ghost copy-command" type="button" data-command="git status">状态</button>
+                <button class="btn ghost copy-command" type="button" data-command="git add .">暂存</button>
+                <button class="btn ghost copy-command" type="button" data-command='git commit -m "demo: update test management project"'>提交</button>
+                <button class="btn ghost copy-command" type="button" data-command="git push -u origin HEAD">推送</button>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="caseDialog">
+    <form method="dialog" class="case-form" id="caseForm">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Test Case</p>
+          <h2 id="dialogTitle">新建用例</h2>
+        </div>
+        <button class="icon-btn" id="closeDialogBtn" type="button" aria-label="关闭">×</button>
+      </div>
+
+      <input id="caseId" type="hidden">
+
+      <label>
+        <span>标题</span>
+        <input id="titleInput" required maxlength="255" placeholder="例如：登录成功后进入首页">
+      </label>
+
+      <div class="form-grid">
+        <label>
+          <span>模块</span>
+          <input id="moduleInput" placeholder="用户中心">
+        </label>
+        <label>
+          <span>优先级</span>
+          <select id="priorityInput">
+            <option value="P0">P0</option>
+            <option value="P1">P1</option>
+            <option value="P2">P2</option>
+            <option value="P3">P3</option>
+          </select>
+        </label>
+        <label>
+          <span>状态</span>
+          <select id="statusInput">
+            <option value="DRAFT">DRAFT</option>
+            <option value="READY">READY</option>
+            <option value="RUNNING">RUNNING</option>
+            <option value="PASSED">PASSED</option>
+            <option value="FAILED">FAILED</option>
+            <option value="BLOCKED">BLOCKED</option>
+          </select>
+        </label>
+        <label>
+          <span>创建人</span>
+          <input id="creatorInput" placeholder="tester">
+        </label>
+      </div>
+
+      <label>
+        <span>前置条件</span>
+        <textarea id="preconditionInput" rows="2" placeholder="用户已注册并拥有有效账号"></textarea>
+      </label>
+      <label>
+        <span>测试步骤</span>
+        <textarea id="stepsInput" rows="4" placeholder="1. 打开登录页&#10;2. 输入账号密码&#10;3. 点击登录"></textarea>
+      </label>
+      <label>
+        <span>预期结果</span>
+        <textarea id="expectedResultInput" rows="3" placeholder="登录成功，跳转到首页"></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <button class="btn ghost" id="cancelFormBtn" type="button">取消</button>
+        <button class="btn primary" type="submit">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast hidden" id="toast"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

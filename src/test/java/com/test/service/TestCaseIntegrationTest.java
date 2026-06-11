@@ -95,6 +95,8 @@ class TestCaseIntegrationTest {
         assertEquals("用户登录测试（已更新）", updated.getTitle());
         assertEquals("执行中", updated.getStatus());
         assertEquals("中", updated.getPriority());
+        assertEquals("用户管理", updated.getModule());
+        assertEquals("用户已注册", updated.getPrecondition());
     }
 
     @Test

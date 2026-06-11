@@ -1,6 +1,6 @@
-CREATE DATABASE IF NOT EXISTS testcase_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS test_management DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-USE testcase_db;
+USE test_management;
 
 CREATE TABLE IF NOT EXISTS test_case (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS test_case (
     precondition TEXT COMMENT '前置条件',
     steps TEXT COMMENT '测试步骤',
     expected_result TEXT COMMENT '预期结果',
-    status VARCHAR(20) DEFAULT '待执行' COMMENT '状态：待执行/执行中/已完成/已阻塞',
+    status VARCHAR(20) DEFAULT 'DRAFT' COMMENT '状态：DRAFT/READY/PASSED/FAILED',
     creator VARCHAR(50) COMMENT '创建人',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',

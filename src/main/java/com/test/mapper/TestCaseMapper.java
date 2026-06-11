@@ -23,10 +23,10 @@ public interface TestCaseMapper {
     @Select("SELECT * FROM test_case WHERE id=#{id}")
     TestCase selectById(Long id);
 
-    @Select("SELECT * FROM test_case")
+    @Select("SELECT * FROM test_case ORDER BY id DESC")
     List<TestCase> selectList();
 
-    @Select("SELECT * FROM test_case WHERE title LIKE CONCAT('%', #{keyword}, '%') OR module LIKE CONCAT('%', #{keyword}, '%')")
+    @Select("SELECT * FROM test_case WHERE title LIKE CONCAT('%', #{keyword}, '%') OR module LIKE CONCAT('%', #{keyword}, '%') ORDER BY id DESC")
     List<TestCase> search(String keyword);
 
     @Delete("DELETE FROM test_case")

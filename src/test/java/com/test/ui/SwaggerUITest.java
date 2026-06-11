@@ -9,24 +9,27 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.test.ui.page.SwaggerPage;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.net.HttpURLConnection;
-import java.net.URI;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Swagger UI end-to-end test")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 public class SwaggerUITest {
     private static final double SLOW_MOTION_MS = 1200;
     private static final double FINAL_REVIEW_MS = 8000;
-    private static final String SWAGGER_UI_URL = "http://localhost:8080/swagger-ui/index.html";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @LocalServerPort
+    private int port;
 
     private Playwright playwright;
     private Browser browser;
@@ -36,8 +39,6 @@ public class SwaggerUITest {
 
     @BeforeEach
     void setUp() {
-        Assumptions.assumeTrue(isSwaggerUiAvailable(), "Swagger UI is not available on localhost:8080");
-
         playwright = Playwright.create();
 
         LaunchOptions options = new LaunchOptions();
@@ -48,7 +49,7 @@ public class SwaggerUITest {
         browser = playwright.chromium().launch(options);
         context = browser.newContext();
         page = context.newPage();
-        swaggerPage = new SwaggerPage(page);
+        swaggerPage = new SwaggerPage(page, "http://127.0.0.1:" + port);
     }
 
     @Test
@@ -98,21 +99,6 @@ public class SwaggerUITest {
             return Boolean.parseBoolean(explicitValue);
         }
         return Boolean.parseBoolean(System.getenv().getOrDefault("CI", "false"));
-    }
-
-    private boolean isSwaggerUiAvailable() {
-        try {
-            HttpURLConnection connection = (HttpURLConnection) URI
-                    .create(SWAGGER_UI_URL)
-                    .toURL()
-                    .openConnection();
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(1000);
-            connection.setReadTimeout(1000);
-            return connection.getResponseCode() < 500;
-        } catch (Exception ignored) {
-            return false;
-        }
     }
 
     @AfterEach
